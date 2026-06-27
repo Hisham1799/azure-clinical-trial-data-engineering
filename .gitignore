@@ -1,0 +1,87 @@
+# Public documentation repository allowlist
+*
+!.gitignore
+!README.md
+!ARCHITECTURE.md
+!V1_FULL_LOAD.md
+!V2_INCREMENTAL_FRAMEWORK.md
+!TEST_EVIDENCE.md
+!RUNBOOK.md
+!FUTURE_IMPROVEMENTS.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Databricks and Spark
+.databricks/
+databricks.yml.local
+*.dbc
+spark-warehouse/
+metastore_db/
+derby.log
+
+# VS Code and IDEs
+.vscode/
+.idea/
+*.code-workspace
+
+# Environment files, credentials, and keys
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+*.cer
+*.jks
+*.keystore
+*credentials*
+*secrets*
+*token*
+*.publishsettings
+
+# Azure and local runtime artifacts
+.azure/
+local.settings.json
+*.bacpac
+*.bak
+*.dmp
+*SHIR*
+*IntegrationRuntime*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Logs, caches, and temporary files
+*.log
+*.tmp
+*.temp
+*.cache
+.cache/
+tmp/
+temp/
+
+# Project-private material
+INTERVIEW_TALK_TRACK.md
+ARCHITECTURE_AUDIT.md
+project screenshots images/
