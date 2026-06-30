@@ -1,87 +1,53 @@
-# Public documentation repository allowlist
-*
-!.gitignore
-!README.md
-!ARCHITECTURE.md
-!V1_FULL_LOAD.md
-!V2_INCREMENTAL_FRAMEWORK.md
-!TEST_EVIDENCE.md
-!RUNBOOK.md
-!FUTURE_IMPROVEMENTS.md
-
-# Python
-__pycache__/
-*.py[cod]
-*.pyd
-*.so
-.Python
-.venv/
-venv/
-env/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.coverage
-htmlcov/
-dist/
-build/
-*.egg-info/
-
-# Databricks and Spark
-.databricks/
-databricks.yml.local
-*.dbc
-spark-warehouse/
-metastore_db/
-derby.log
-
-# VS Code and IDEs
-.vscode/
-.idea/
-*.code-workspace
-
-# Environment files, credentials, and keys
+﻿# Credentials and local authentication
 .env
 .env.*
+!.env.example
 *.pem
 *.key
 *.pfx
 *.p12
-*.crt
-*.cer
-*.jks
-*.keystore
 *credentials*
 *secrets*
 *token*
-*.publishsettings
-
-# Azure and local runtime artifacts
 .azure/
+.databricks/
+.databrickscfg
 local.settings.json
+
+# Large/raw data and database backups
+*.parquet
+*.delta
+*.dbc
 *.bacpac
 *.bak
 *.dmp
-*SHIR*
-*IntegrationRuntime*
+*.dump
+*.msi
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+*_full_dump.sql
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.lnk
-
-# Logs, caches, and temporary files
+# Local logs, reports, caches, and screenshots
 *.log
 *.tmp
 *.temp
 *.cache
-.cache/
-tmp/
-temp/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+htmlcov/
+coverage.xml
+archive_logs/
+private/
 
-# Project-private material
-INTERVIEW_TALK_TRACK.md
-ARCHITECTURE_AUDIT.md
-project screenshots images/
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+# Private local source/archive material
+New folder/
+PROJECT_INVENTORY.md
+AZURE_ARCHIVE_ACTION_LOG.md

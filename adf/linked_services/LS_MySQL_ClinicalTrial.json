@@ -1,0 +1,26 @@
+{
+    "id":  "/subscriptions/bc5c2887-eabd-4354-ba62-ade1a5b53b49/resourceGroups/rg-clinical-trial/providers/Microsoft.DataFactory/factories/adf-clinical-trial/linkedservices/LS_MySQL_ClinicalTrial",
+    "name":  "LS_MySQL_ClinicalTrial",
+    "type":  "Microsoft.DataFactory/factories/linkedservices",
+    "properties":  {
+                       "annotations":  {
+
+                                       },
+                       "type":  "MySql",
+                       "typeProperties":  {
+                                              "server":  "localhost",
+                                              "port":  3306,
+                                              "database":  "clinical_trial_db",
+                                              "username":  "root",
+                                              "sslMode":  1,
+                                              "useSystemTrustStore":  0,
+                                              "driverVersion":  "v2",
+                                              "encryptedCredential":  "\u003cREDACTED\u003e"
+                                          },
+                       "connectVia":  {
+                                          "referenceName":  "SHIR-ClinicalTrial",
+                                          "type":  "IntegrationRuntimeReference"
+                                      }
+                   },
+    "etag":  "3200c1c3-0000-2000-0000-6a38be830000"
+}

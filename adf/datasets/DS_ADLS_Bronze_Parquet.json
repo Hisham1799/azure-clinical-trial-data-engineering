@@ -1,0 +1,39 @@
+{
+    "id":  "/subscriptions/bc5c2887-eabd-4354-ba62-ade1a5b53b49/resourceGroups/rg-clinical-trial/providers/Microsoft.DataFactory/factories/adf-clinical-trial/datasets/DS_ADLS_Bronze_Parquet",
+    "name":  "DS_ADLS_Bronze_Parquet",
+    "type":  "Microsoft.DataFactory/factories/datasets",
+    "properties":  {
+                       "linkedServiceName":  {
+                                                 "referenceName":  "LS_ADLS_ClinicalTrial",
+                                                 "type":  "LinkedServiceReference"
+                                             },
+                       "parameters":  {
+                                          "tableName":  {
+                                                            "type":  "string"
+                                                        }
+                                      },
+                       "annotations":  {
+
+                                       },
+                       "type":  "Parquet",
+                       "typeProperties":  {
+                                              "location":  {
+                                                               "type":  "AzureBlobFSLocation",
+                                                               "fileName":  {
+                                                                                "value":  "@concat(dataset().tableName, \u0027.parquet\u0027)",
+                                                                                "type":  "Expression"
+                                                                            },
+                                                               "folderPath":  {
+                                                                                  "value":  "@dataset().tableName",
+                                                                                  "type":  "Expression"
+                                                                              },
+                                                               "fileSystem":  "bronze"
+                                                           },
+                                              "compressionCodec":  "snappy"
+                                          },
+                       "schema":  {
+
+                                  }
+                   },
+    "etag":  "33004d4a-0000-2000-0000-6a38cf460000"
+}

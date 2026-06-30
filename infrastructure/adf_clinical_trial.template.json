@@ -1,0 +1,358 @@
+{
+    "$schema":  "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion":  "1.0.0.0",
+    "parameters":  {
+                       "factoryName":  {
+                                           "type":  "string",
+                                           "defaultValue":  "adf-clinical-trial"
+                                       }
+                   },
+    "variables":  {
+
+                  },
+    "resources":  [
+                      {
+                          "type":  "Microsoft.DataFactory/factories",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[parameters(\u0027factoryName\u0027)]",
+                          "location":  "centralindia",
+                          "identity":  {
+                                           "type":  "SystemAssigned",
+                                           "principalId":  "e98e05c9-10f8-40cf-ac58-6d5d15638afc",
+                                           "tenantId":  "ceb937d8-13f6-4d72-b8be-3f96fee7e3d5"
+                                       },
+                          "properties":  {
+                                             "provisioningState":  "Succeeded",
+                                             "createTime":  "2026-06-22T03:40:51.5849187Z",
+                                             "version":  "2018-06-01",
+                                             "factoryStatistics":  {
+                                                                       "totalResourceCount":  0,
+                                                                       "maxAllowedResourceCount":  0,
+                                                                       "factorySizeInGbUnits":  0,
+                                                                       "maxAllowedFactorySizeInGbUnits":  0
+                                                                   },
+                                             "publicNetworkAccess":  "Enabled",
+                                             "trustModeClaimForMi":  {
+                                                                         "value":  "Disabled",
+                                                                         "editable":  true
+                                                                     }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/linkedservices",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/LS_MySQL_ClinicalTrial\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "annotations":  {
+
+                                                             },
+                                             "type":  "MySql",
+                                             "typeProperties":  {
+                                                                    "server":  "localhost",
+                                                                    "port":  3306,
+                                                                    "database":  "clinical_trial_db",
+                                                                    "username":  "root",
+                                                                    "sslMode":  1,
+                                                                    "useSystemTrustStore":  0,
+                                                                    "driverVersion":  "v2",
+                                                                    "encryptedCredential":  "\u003cREDACTED\u003e"
+                                                                },
+                                             "connectVia":  {
+                                                                "referenceName":  "SHIR-ClinicalTrial",
+                                                                "type":  "IntegrationRuntimeReference"
+                                                            }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/linkedservices",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/LS_ADLS_ClinicalTrial\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "annotations":  {
+
+                                                             },
+                                             "type":  "AzureBlobFS",
+                                             "typeProperties":  {
+                                                                    "url":  "https://hishamclinicaldl.dfs.core.windows.net/",
+                                                                    "encryptedCredential":  "\u003cREDACTED\u003e"
+                                                                }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/integrationruntimes",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/SHIR-ClinicalTrial\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "type":  "SelfHosted",
+                                             "typeProperties":  {
+
+                                                                }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/datasets",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/DS_MySQL_ClinicalTrial\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "linkedServiceName":  {
+                                                                       "referenceName":  "LS_MySQL_ClinicalTrial",
+                                                                       "type":  "LinkedServiceReference"
+                                                                   },
+                                             "annotations":  {
+
+                                                             },
+                                             "type":  "MySqlTable",
+                                             "schema":  {
+
+                                                        },
+                                             "typeProperties":  {
+
+                                                                }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/datasets",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/DS_ADLS_Bronze_Parquet\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "linkedServiceName":  {
+                                                                       "referenceName":  "LS_ADLS_ClinicalTrial",
+                                                                       "type":  "LinkedServiceReference"
+                                                                   },
+                                             "parameters":  {
+                                                                "tableName":  {
+                                                                                  "type":  "string"
+                                                                              }
+                                                            },
+                                             "annotations":  {
+
+                                                             },
+                                             "type":  "Parquet",
+                                             "typeProperties":  {
+                                                                    "location":  {
+                                                                                     "type":  "AzureBlobFSLocation",
+                                                                                     "fileName":  {
+                                                                                                      "value":  "@concat(dataset().tableName, \u0027.parquet\u0027)",
+                                                                                                      "type":  "Expression"
+                                                                                                  },
+                                                                                     "folderPath":  {
+                                                                                                        "value":  "@dataset().tableName",
+                                                                                                        "type":  "Expression"
+                                                                                                    },
+                                                                                     "fileSystem":  "bronze"
+                                                                                 },
+                                                                    "compressionCodec":  "snappy"
+                                                                },
+                                             "schema":  {
+
+                                                        }
+                                         }
+                      },
+                      {
+                          "type":  "Microsoft.DataFactory/factories/pipelines",
+                          "apiVersion":  "2018-06-01",
+                          "name":  "[concat(parameters(\u0027factoryName\u0027), \u0027/pipeline1\u0027)]",
+                          "dependsOn":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]",
+                          "properties":  {
+                                             "activities":  [
+                                                                {
+                                                                    "name":  "LKP_GetTableList",
+                                                                    "type":  "Lookup",
+                                                                    "dependsOn":  {
+
+                                                                                  },
+                                                                    "policy":  {
+                                                                                   "timeout":  "0.12:00:00",
+                                                                                   "retry":  0,
+                                                                                   "retryIntervalInSeconds":  30,
+                                                                                   "secureOutput":  false,
+                                                                                   "secureInput":  false
+                                                                               },
+                                                                    "userProperties":  {
+
+                                                                                       },
+                                                                    "typeProperties":  {
+                                                                                           "source":  {
+                                                                                                          "type":  "MySqlSource",
+                                                                                                          "query":  "SELECT\n    table_name,\n    primary_key_column,\n    load_type,\n    watermark_column,\n    last_watermark\nFROM pipeline_watermark_config\nWHERE is_active = TRUE\nORDER BY table_name;"
+                                                                                                      },
+                                                                                           "dataset":  {
+                                                                                                           "referenceName":  "DS_MySQL_ClinicalTrial",
+                                                                                                           "type":  "DatasetReference",
+                                                                                                           "parameters":  {
+
+                                                                                                                          }
+                                                                                                       },
+                                                                                           "firstRowOnly":  false
+                                                                                       }
+                                                                },
+                                                                {
+                                                                    "name":  "FE_LoopTables",
+                                                                    "type":  "ForEach",
+                                                                    "dependsOn":  {
+                                                                                      "activity":  "LKP_GetTableList",
+                                                                                      "dependencyConditions":  "Succeeded"
+                                                                                  },
+                                                                    "userProperties":  {
+
+                                                                                       },
+                                                                    "typeProperties":  {
+                                                                                           "items":  {
+                                                                                                         "value":  "@activity(\u0027LKP_GetTableList\u0027).output.value",
+                                                                                                         "type":  "Expression"
+                                                                                                     },
+                                                                                           "activities":  [
+                                                                                                              {
+                                                                                                                  "name":  "CP_MySQLToADLS",
+                                                                                                                  "type":  "Copy",
+                                                                                                                  "dependsOn":  {
+
+                                                                                                                                },
+                                                                                                                  "policy":  {
+                                                                                                                                 "timeout":  "0.12:00:00",
+                                                                                                                                 "retry":  0,
+                                                                                                                                 "retryIntervalInSeconds":  30,
+                                                                                                                                 "secureOutput":  false,
+                                                                                                                                 "secureInput":  false
+                                                                                                                             },
+                                                                                                                  "userProperties":  {
+
+                                                                                                                                     },
+                                                                                                                  "typeProperties":  {
+                                                                                                                                         "source":  {
+                                                                                                                                                        "type":  "MySqlSource",
+                                                                                                                                                        "query":  {
+                                                                                                                                                                      "value":  "@if(\n    equals(item().load_type, \u0027full_reload\u0027),\n    concat(\u0027SELECT * FROM \u0027, item().table_name),\n    concat(\n        \u0027SELECT * FROM \u0027,\n        item().table_name,\n        \u0027 WHERE \u0027,\n        item().watermark_column,\n        \u0027 \u003e \u0027,\n        if(\n            empty(item().last_watermark),\n            \u0027\u0027\u00271900-01-01 00:00:00\u0027\u0027\u0027,\n            concat(\u0027\u0027\u0027\u0027, item().last_watermark, \u0027\u0027\u0027\u0027)\n        )\n    )\n)",
+                                                                                                                                                                      "type":  "Expression"
+                                                                                                                                                                  }
+                                                                                                                                                    },
+                                                                                                                                         "sink":  {
+                                                                                                                                                      "type":  "ParquetSink",
+                                                                                                                                                      "storeSettings":  {
+                                                                                                                                                                            "type":  "AzureBlobFSWriteSettings"
+                                                                                                                                                                        },
+                                                                                                                                                      "formatSettings":  {
+                                                                                                                                                                             "type":  "ParquetWriteSettings"
+                                                                                                                                                                         }
+                                                                                                                                                  },
+                                                                                                                                         "enableStaging":  false,
+                                                                                                                                         "translator":  {
+                                                                                                                                                            "type":  "TabularTranslator",
+                                                                                                                                                            "typeConversion":  true,
+                                                                                                                                                            "typeConversionSettings":  {
+                                                                                                                                                                                           "allowDataTruncation":  true,
+                                                                                                                                                                                           "treatBooleanAsNumber":  false
+                                                                                                                                                                                       }
+                                                                                                                                                        }
+                                                                                                                                     },
+                                                                                                                  "inputs":  {
+                                                                                                                                 "referenceName":  "DS_MySQL_ClinicalTrial",
+                                                                                                                                 "type":  "DatasetReference",
+                                                                                                                                 "parameters":  {
+
+                                                                                                                                                }
+                                                                                                                             },
+                                                                                                                  "outputs":  {
+                                                                                                                                  "referenceName":  "DS_ADLS_Bronze_Parquet",
+                                                                                                                                  "type":  "DatasetReference",
+                                                                                                                                  "parameters":  {
+                                                                                                                                                     "tableName":  {
+                                                                                                                                                                       "value":  "@item().table_name",
+                                                                                                                                                                       "type":  "Expression"
+                                                                                                                                                                   }
+                                                                                                                                                 }
+                                                                                                                              }
+                                                                                                              },
+                                                                                                              {
+                                                                                                                  "name":  "LKP_GetNewWatermark",
+                                                                                                                  "type":  "Lookup",
+                                                                                                                  "dependsOn":  {
+                                                                                                                                    "activity":  "CP_MySQLToADLS",
+                                                                                                                                    "dependencyConditions":  "Succeeded"
+                                                                                                                                },
+                                                                                                                  "policy":  {
+                                                                                                                                 "timeout":  "0.12:00:00",
+                                                                                                                                 "retry":  0,
+                                                                                                                                 "retryIntervalInSeconds":  30,
+                                                                                                                                 "secureOutput":  false,
+                                                                                                                                 "secureInput":  false
+                                                                                                                             },
+                                                                                                                  "userProperties":  {
+
+                                                                                                                                     },
+                                                                                                                  "typeProperties":  {
+                                                                                                                                         "source":  {
+                                                                                                                                                        "type":  "MySqlSource",
+                                                                                                                                                        "query":  "@if(\n    equals(item().load_type, \u0027full_reload\u0027),\n    \u0027SELECT NULL AS new_watermark\u0027,\n    concat(\n        \u0027SELECT MAX(\u0027,\n        item().watermark_column,\n        \u0027) AS new_watermark FROM \u0027,\n        item().table_name\n    )\n)"
+                                                                                                                                                    },
+                                                                                                                                         "dataset":  {
+                                                                                                                                                         "referenceName":  "DS_MySQL_ClinicalTrial",
+                                                                                                                                                         "type":  "DatasetReference",
+                                                                                                                                                         "parameters":  {
+
+                                                                                                                                                                        }
+                                                                                                                                                     }
+                                                                                                                                     }
+                                                                                                              },
+                                                                                                              {
+                                                                                                                  "name":  "LKP_UpdateWatermark",
+                                                                                                                  "type":  "Lookup",
+                                                                                                                  "dependsOn":  {
+                                                                                                                                    "activity":  "LKP_GetNewWatermark",
+                                                                                                                                    "dependencyConditions":  "Succeeded"
+                                                                                                                                },
+                                                                                                                  "policy":  {
+                                                                                                                                 "timeout":  "0.12:00:00",
+                                                                                                                                 "retry":  0,
+                                                                                                                                 "retryIntervalInSeconds":  30,
+                                                                                                                                 "secureOutput":  false,
+                                                                                                                                 "secureInput":  false
+                                                                                                                             },
+                                                                                                                  "userProperties":  {
+
+                                                                                                                                     },
+                                                                                                                  "typeProperties":  {
+                                                                                                                                         "source":  {
+                                                                                                                                                        "type":  "MySqlSource",
+                                                                                                                                                        "query":  {
+                                                                                                                                                                      "value":  "@concat(\n\u0027CALL sp_update_pipeline_watermark(\u0027\u0027\u0027,\nitem().table_name,\n\u0027\u0027\u0027, \u0027,\nif(\n    equals(item().load_type,\u0027full_reload\u0027),\n    \u0027NULL\u0027,\n    concat(\n        \u0027\u0027\u0027\u0027,\n        activity(\u0027LKP_GetNewWatermark\u0027).output.firstRow.new_watermark,\n        \u0027\u0027\u0027\u0027\n    )\n),\n\u0027)\u0027\n)",
+                                                                                                                                                                      "type":  "Expression"
+                                                                                                                                                                  }
+                                                                                                                                                    },
+                                                                                                                                         "dataset":  {
+                                                                                                                                                         "referenceName":  "DS_MySQL_ClinicalTrial",
+                                                                                                                                                         "type":  "DatasetReference",
+                                                                                                                                                         "parameters":  {
+
+                                                                                                                                                                        }
+                                                                                                                                                     }
+                                                                                                                                     }
+                                                                                                              }
+                                                                                                          ]
+                                                                                       }
+                                                                }
+                                                            ],
+                                             "policy":  {
+                                                            "elapsedTimeMetric":  {
+
+                                                                                  }
+                                                        },
+                                             "annotations":  {
+
+                                                             },
+                                             "lastPublishTime":  "2026-06-26T09:25:34Z"
+                                         }
+                      }
+                  ],
+    "outputs":  {
+                    "factoryResourceId":  {
+                                              "type":  "string",
+                                              "value":  "[resourceId(\u0027Microsoft.DataFactory/factories\u0027, parameters(\u0027factoryName\u0027))]"
+                                          }
+                }
+}

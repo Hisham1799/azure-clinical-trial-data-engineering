@@ -1,0 +1,12 @@
+{
+    "id":  "/subscriptions/bc5c2887-eabd-4354-ba62-ade1a5b53b49/resourceGroups/rg-clinical-trial/providers/Microsoft.DataFactory/factories/adf-clinical-trial/integrationruntimes/SHIR-ClinicalTrial",
+    "name":  "SHIR-ClinicalTrial",
+    "type":  "Microsoft.DataFactory/factories/integrationruntimes",
+    "properties":  {
+                       "type":  "SelfHosted",
+                       "typeProperties":  {
+
+                                          }
+                   },
+    "etag":  "3200ce82-0000-2000-0000-6a38b2990000"
+}

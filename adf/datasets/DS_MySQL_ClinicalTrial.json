@@ -1,0 +1,22 @@
+{
+    "id":  "/subscriptions/bc5c2887-eabd-4354-ba62-ade1a5b53b49/resourceGroups/rg-clinical-trial/providers/Microsoft.DataFactory/factories/adf-clinical-trial/datasets/DS_MySQL_ClinicalTrial",
+    "name":  "DS_MySQL_ClinicalTrial",
+    "type":  "Microsoft.DataFactory/factories/datasets",
+    "properties":  {
+                       "linkedServiceName":  {
+                                                 "referenceName":  "LS_MySQL_ClinicalTrial",
+                                                 "type":  "LinkedServiceReference"
+                                             },
+                       "annotations":  {
+
+                                       },
+                       "type":  "MySqlTable",
+                       "schema":  {
+
+                                  },
+                       "typeProperties":  {
+
+                                          }
+                   },
+    "etag":  "3200cac9-0000-2000-0000-6a38bf880000"
+}

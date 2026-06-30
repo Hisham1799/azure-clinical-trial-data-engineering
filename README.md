@@ -1,131 +1,63 @@
-# Azure Clinical Trial Data Engineering Project
+# Azure Clinical Trial Data Engineering
 
-An end-to-end Azure data engineering portfolio project that ingests clinical-trial data from local MySQL, stores it in an ADLS Gen2 lakehouse, transforms it with Azure Databricks and Delta Lake, governs tables through Unity Catalog, and serves Gold marts through Synapse serverless SQL for Power BI consumption.
-
-The project was built in two stages:
-
-- **Version 1:** a complete full-load lakehouse using overwrite-based processing.
-- **Version 2:** a production-style upgrade with metadata-driven incremental ingestion, per-table watermarks, incremental Silver Delta MERGE, deterministic Gold publishing, and end-to-end validation.
-
-This is a validated portfolio implementation, not a claim of enterprise production readiness. Remaining production improvements are documented in [FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md).
+End-to-end Azure lakehouse project that ingests 18 clinical-trial tables from local MySQL through a Self-Hosted Integration Runtime, lands Parquet in ADLS Gen2, transforms data with Databricks and Delta Lake, governs external tables with Unity Catalog, and serves Gold marts through Synapse serverless SQL.
 
 ## Architecture
 
 ```text
-Local MySQL
-    |
-    | SHIR-ClinicalTrial
-    v
-Azure Data Factory
-    |
-    | metadata-driven full/incremental extraction
-    v
-ADLS Gen2 Bronze (Parquet)
-    |
-    | Databricks: transform_silver() + Delta MERGE
-    v
-ADLS Gen2 Silver (Delta) + Unity Catalog
-    |
-    | Databricks: full Gold publish
-    v
-ADLS Gen2 Gold (Delta) + Unity Catalog
-    |
-    v
-Synapse Serverless SQL
-    |
-    v
-Power BI-ready serving layer
+MySQL -> SHIR -> Azure Data Factory -> ADLS Bronze
+      -> Databricks / Delta Lake -> Silver -> Gold
+      -> Unity Catalog -> Synapse Serverless SQL
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed V1 and V2 diagrams and component responsibilities.
+## What is implemented
 
-## Technology stack
+- Metadata-driven ADF Lookup + ForEach ingestion.
+- Reusable MySQL and Parquet datasets.
+- Full-load and incremental Bronze-to-Silver notebooks.
+- Delta `MERGE` framework and data-quality checks.
+- Deterministic Silver-to-Gold publishing.
+- 18 Silver domain tables and four Gold marts.
+- Synapse external-table/query scripts.
+- Sanitized ADF and ARM exports.
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Source | MySQL 8 | Clinical source tables and watermark metadata |
-| Connectivity | Self-hosted Integration Runtime | Secure bridge from ADF to local MySQL |
-| Orchestration | Azure Data Factory | Metadata lookup, table iteration, extraction, watermark handling |
-| Storage | ADLS Gen2 | Bronze Parquet and Silver/Gold Delta data |
-| Processing | Azure Databricks / Apache Spark | Transformation, MERGE, Gold publishing |
-| Lakehouse | Delta Lake | ACID Silver and Gold tables |
-| Governance | Unity Catalog | Catalog, schemas, external table registration |
-| Serving | Synapse serverless SQL | External tables and reporting queries |
-| Reporting target | Power BI | Consumption-ready SQL serving layer |
+## Repository map
 
-## Version 1 and Version 2
+| Path | Purpose |
+|---|---|
+| `adf/` | Pipelines, datasets, linked services, and SHIR definition |
+| `databricks/` | Portable `.py` and output-free `.ipynb` notebooks |
+| `sql/source_ddl/` | Schema-only DDL for 18 source tables |
+| `sql/synapse/` | Synapse serverless SQL scripts |
+| `infrastructure/` | Sanitized ADF ARM template |
+| `docs/` | Resource summary and rebuild guide |
+| `SECURITY_NOTES.md` | Redactions and secret-handling rules |
+| `PROJECT_STRUCTURE.md` | Detailed file guide |
 
-| Capability | Version 1 | Version 2 |
-|---|---|---|
-| Ingestion | Full load | Metadata-driven full/incremental extraction |
-| Bronze | Full source extracts | Changed/new rows for incremental tables |
-| Silver | Overwrite | Primary-key Delta MERGE |
-| Empty batches | Not central to design | Safely skipped |
-| Gold | Full publish | Full publish from latest trusted Silver |
-| Watermarks | Not used | Per-table watermarks |
-| Validation | Baseline layer counts | Inserts, updates, bulk changes, reruns, duplicate checks |
-| Main notebooks | `01_bronze_to_silver_gold` | `02_incremental_bronze_to_silver_merge`, `03_silver_to_gold_publish` |
+## Data flow
 
-Gold remains a full publish by design. The four Gold datasets are small business marts containing joins and derived metrics; rebuilding them from trusted Silver is currently simpler and more deterministic than maintaining incremental join state.
+1. ADF queries MySQL metadata to discover source tables.
+2. A parameterized ForEach copy lands one Parquet dataset per table in Bronze.
+3. Databricks cleans, types, validates, and merges records into Silver Delta tables.
+4. Gold notebooks produce patient/study, lab, safety-event, and visit marts.
+5. Synapse serverless SQL exposes Gold data for reporting.
 
-## Implemented datasets
+## Run or rebuild
 
-Silver contains 18 clinical tables. Gold contains four reporting marts:
+The original Azure resources were archived and deleted on 2026-06-30. Rebuild using [docs/REBUILD_STEPS.md](docs/REBUILD_STEPS.md), create fresh credentials, deploy the sanitized ADF template, import the notebooks, recreate Unity Catalog locations, then run the Synapse scripts.
 
-- `patient_study_summary`
-- `lab_summary`
-- `safety_adverse_events`
-- `visit_summary`
+Never reuse identifiers or credentials from the archived environment. See [SECURITY_NOTES.md](SECURITY_NOTES.md).
 
-Final validated Gold/Synapse counts:
+## Interview talking points
 
-| Dataset | Rows |
-|---|---:|
-| `patient_study_summary` | 241 |
-| `lab_summary` | 7,715 |
-| `safety_adverse_events` | 245 |
-| `visit_summary` | 1,108 |
+- Why metadata-driven ingestion scales better than 18 copy activities.
+- Why SHIR is required for a private local MySQL source.
+- Parquet Bronze versus transactional Delta Silver/Gold.
+- Idempotent Delta MERGE and no-change reruns.
+- Managed-identity access through Unity Catalog external locations.
+- Cost control through terminated clusters and serverless SQL.
+- Disaster-recovery discipline: notebooks, ADF JSON, SQL, ARM, RBAC, screenshots, and rebuild guides were archived before deletion.
 
-## Key validation results
+## Boundaries
 
-- A patient inserted without an enrollment reached Silver but correctly did not enter `patient_study_summary`.
-- Adding a valid enrollment caused that patient to appear in Gold.
-- Updating `enrollment_status` propagated through ADF, Silver, Gold, and Synapse.
-- Forty patients and their enrollments were loaded in bulk, increasing `patient_study_summary` to 241.
-- Seven selected enrollment statuses were updated and verified in Synapse.
-- A final no-change rerun preserved counts and returned no duplicate patient IDs.
-
-Full evidence is documented in [TEST_EVIDENCE.md](TEST_EVIDENCE.md). Local validation screenshots are intentionally excluded from the public repository.
-
-
-## How to run
-
-The current workflow is deliberately explicit:
-
-1. Start local MySQL and confirm `clinical_trial_db` is reachable.
-2. Confirm the Windows machine is online and the `SHIR-ClinicalTrial` service/node is available.
-3. Run ADF `pipeline1`.
-4. Run Databricks notebook `02_incremental_bronze_to_silver_merge`.
-5. Run Databricks notebook `03_silver_to_gold_publish`.
-6. Query the four Gold external tables in Synapse database `clinical_trial_serving`.
-
-See [RUNBOOK.md](RUNBOOK.md) for prerequisites, verification queries, and troubleshooting.
-
-## Documentation map
-
-- [ARCHITECTURE.md](ARCHITECTURE.md) — detailed design and data flow
-- [V1_FULL_LOAD.md](V1_FULL_LOAD.md) — original full-load lakehouse
-- [V2_INCREMENTAL_FRAMEWORK.md](V2_INCREMENTAL_FRAMEWORK.md) — incremental upgrade
-- [TEST_EVIDENCE.md](TEST_EVIDENCE.md) — completed validation tests
-- [RUNBOOK.md](RUNBOOK.md) — operational execution guide
-- [FUTURE_IMPROVEMENTS.md](FUTURE_IMPROVEMENTS.md) — prioritized next steps
-
-## Operational boundaries
-
-- MySQL is hosted locally, so MySQL, Windows, network connectivity, and SHIR must all be online during ADF extraction.
-- Closing the SHIR desktop application does not necessarily stop its Windows service; node/service health is the relevant check.
-- Databricks notebooks are currently run after ADF rather than orchestrated automatically.
-- Bronze is incremental in row selection, but immutable batch history is a future improvement.
-- Silver MERGE provides business-key upsert behavior; avoiding physical updates for unchanged rows is a future optimization.
-- Gold full publish is intentional at the current scale.
-
+This repository intentionally excludes secrets, raw clinical rows, full SQL dumps, Parquet/Delta data, DBC archives, installers, private logs, and the complete offline Azure backup.
